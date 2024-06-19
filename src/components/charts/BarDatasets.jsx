@@ -1,43 +1,33 @@
 import { useState, useEffect } from 'react'
 import ColorSelect from './ColorSelect'
-import { toggleDropdown, handleColorCheckboxChange } from '@/utils/helpers'
+import { toggleDropdown, handleColorCheckboxChange, modifySetting } from '@/utils/helpers'
 
 export default function BarDataset({ dataset, onDatasetChange, onTypeChange, index }) {
+    //TODO:MOVER XAXISIDS E YAXISIDS
     const xAxisIDs = ['first-x-axis', 'second-x-axis', 'third-x-axis', 'fourth-x-axis', 'fifth-x-axis']
     const yAxisIDs = ['first-y-axis', 'second-y-axis', 'third-y-axis', 'fourth-y-axis', 'fifth-y-axis']
     const [selectedColors, setSelectedColors] = useState([])
     const [thisDataset, setThisDataset] = useState(dataset)
 
-    const onTypeChangeInner = (chartType, index) => {
-        modifySetting('type', chartType)
-        onTypeChange(chartType, index)
-    };
-
-    const modifySetting = (key, value, type) => {
-        if (key == 'type' && value == 'undefined') value.trim().replace(/'/g, '');
-        if (key == 'type') onTypeChange(value)
-        let updatedDataset
-        if (key == 'pointStyle' && (value == 'false' || value == 'true')) value.trim().replace(/'/g, '')
-        if (type == 'number') {
-            const numValue = Number(value)
-            updatedDataset = { ...thisDataset, [key]: numValue }
-        } else {
-            updatedDataset = { ...thisDataset, [key]: value }
+    useEffect(() => {
+        if (selectedColors) {
+            modifySetting('backgroundColor', selectedColors, thisDataset, setThisDataset)
         }
-        setThisDataset(updatedDataset)
-        onDatasetChange(updatedDataset)
-    }
+    }, [selectedColors])
 
     useEffect(() => {
-        modifySetting('backgroundColor', selectedColors)
-    }, [selectedColors])
+        onDatasetChange(thisDataset)
+    }, [thisDataset])
 
     return (
         <div>
             <div className='form-row'>
                 <label htmlFor="type">
                     Type of dataset:</label>
-                <select name='type' onChange={(e) => onTypeChangeInner(e.target.value, index)} defaultValue={thisDataset?.type}>
+                <select name='type' onChange={(e) => {
+                    modifySetting('type', e.target.value, thisDataset, setThisDataset)
+                    onTypeChange(chartType, index)
+                }} defaultValue={thisDataset?.type}>
                     <option value='undefined'>--Select a dataset type--</option>
                     <option value='line'>Line</option>
                     <option value='pie'>Pie</option>
@@ -56,27 +46,27 @@ export default function BarDataset({ dataset, onDatasetChange, onTypeChange, ind
                 <div id={`basicSettings-dropdown-bar-${index}`} style={{ display: 'none', padding: '5px' }}>
                     <div className='form-row'>
                         <label htmlFor='label'>Dataset label: </label>
-                        <input type='text' name='label' defaultValue={thisDataset?.label} onChange={(e) => modifySetting('label', e.target.value)} />
+                        <input type='text' name='label' defaultValue={thisDataset?.label} onChange={(e) => modifySetting('label', e.target.value, thisDataset, setThisDataset)} />
                     </div>
 
                     <div className='form-row'>
                         <label htmlFor='indexAxis' title="The base axis of the dataset. 'x' for horizontal lines and 'y' for vertical lines.">Index Axis: </label>
-                        <input type='radio' name='indexAxis' value='x' defaultChecked onChange={(e) => modifySetting('indexAxis', e.target.value)} />
+                        <input type='radio' name='indexAxis' value='x' defaultChecked onChange={(e) => modifySetting('indexAxis', e.target.value, thisDataset, setThisDataset)} />
                         <label htmlFor='x'>x</label>
-                        <input type='radio' name='indexAxis' value='y' onChange={(e) => modifySetting('indexAxis', e.target.value)} />
+                        <input type='radio' name='indexAxis' value='y' onChange={(e) => modifySetting('indexAxis', e.target.value, thisDataset, setThisDataset)} />
                         <label htmlFor='x'>y</label>
                     </div>
 
                     <div className='form-row'>
                         <label htmlFor='xAxisID'>xAxisID: </label>
-                        <select name='xAxisID' onChange={(e) => modifySetting('xAxisID', e.target.value)}>
+                        <select name='xAxisID' onChange={(e) => modifySetting('xAxisID', e.target.value, thisDataset, setThisDataset)}>
                             {xAxisIDs.map((axis, index) => (<option key={`xAxis${index}`} value={axis}>{axis}</option>))}
                         </select>
                     </div>
 
                     <div className='form-row'>
                         <label htmlFor='yAxisID'>yAxisID: </label>
-                        <select name='yAxisID' onChange={(e) => modifySetting('yAxisID', e.target.value)}>
+                        <select name='yAxisID' onChange={(e) => modifySetting('yAxisID', e.target.value, thisDataset, setThisDataset)}>
                             {yAxisIDs.map((axis, index) => (<option key={`yAxis${index}`} value={axis}>{axis}</option>))}
                         </select>
                     </div>
@@ -84,33 +74,33 @@ export default function BarDataset({ dataset, onDatasetChange, onTypeChange, ind
                     <div className='form-row'>
                         <label htmlFor='order'>Order: </label>
                         <input type='number' name='order' defaultValue={thisDataset?.order}
-                            onChange={(e) => modifySetting('order', e.target.value, e.target.type)}></input>
+                            onChange={(e) => modifySetting('order', e.target.value, thisDataset, setThisDataset, e.target.type)}></input>
                     </div>
 
                     <div className='form-row'>
                         <label htmlFor='base'>Base value: </label>
                         <input type='number' name='base' defaultValue={thisDataset?.base}
-                            onChange={(e) => modifySetting('base', e.target.value, e.target.type)}></input>
+                            onChange={(e) => modifySetting('base', e.target.value, thisDataset, setThisDataset, e.target.type)}></input>
                     </div>
 
                     <div className='form-row'>
                         <label htmlFor='grouped' title="">Grouped: </label>
-                        <input type='radio' name='grouped' value='true' defaultChecked onChange={(e) => modifySetting('grouped', e.target.value)} />
+                        <input type='radio' name='grouped' value='true' defaultChecked onChange={(e) => modifySetting('grouped', e.target.value, thisDataset, setThisDataset)} />
                         <label htmlFor='true'>true</label>
-                        <input type='radio' name='grouped' value='false' onChange={(e) => modifySetting('grouped', e.target.value)} />
+                        <input type='radio' name='grouped' value='false' onChange={(e) => modifySetting('grouped', e.target.value, thisDataset, setThisDataset)} />
                         <label htmlFor='false'>false</label>
                     </div>
 
                     <div className='form-row'>
                         <label htmlFor='barPercentage'>Bar percentage : </label>
                         <input type='number' name='barPercentage' defaultValue={thisDataset?.barPercentage} step='0.1'
-                            onChange={(e) => modifySetting('barPercentage', e.target.value, e.target.type)}></input>
+                            onChange={(e) => modifySetting('barPercentage', e.target.value, thisDataset, setThisDataset, e.target.type)}></input>
                     </div>
 
                     <div className='form-row'>
                         <label htmlFor='categoryPercentage'>Category percentage : </label>
                         <input type='number' name='categoryPercentage' defaultValue={thisDataset?.categoryPercentage} step='0.1'
-                            onChange={(e) => modifySetting('categoryPercentage', e.target.value, e.target.type)}></input>
+                            onChange={(e) => modifySetting('categoryPercentage', e.target.value, thisDataset, setThisDataset, e.target.type)}></input>
                     </div>
                 </div>
 
@@ -125,6 +115,7 @@ export default function BarDataset({ dataset, onDatasetChange, onTypeChange, ind
                         <div className='form-row' style={{ display: 'flex', flexDirection: 'row' }}>
 
                             <label htmlFor='backgroundColor'>Background color: </label>
+                            <ColorSelect onChange={(e) => modifySetting('backgroundColor', e.target.value, thisDataset, setThisDataset, e.target.type)}></ColorSelect>
 
                             <div style={{ backgroundColor: 'white', padding: '3px' }}>
 
@@ -195,26 +186,26 @@ export default function BarDataset({ dataset, onDatasetChange, onTypeChange, ind
 
                         <div className='form-row'>
                             <label htmlFor='borderColor'>Border color: </label>
-                            <ColorSelect onChange={(e) => modifySetting('borderColor', e.target.value)}></ColorSelect>
+                            <ColorSelect onChange={(e) => modifySetting('borderColor', e.target.value, thisDataset, setThisDataset)}></ColorSelect>
                             <input type='color' id='borderColor' name='borderColor' defaultValue={thisDataset?.borderColor}
-                                onChange={(e) => modifySetting('borderColor', e.target.value)}></input>
+                                onChange={(e) => modifySetting('borderColor', e.target.value, thisDataset, setThisDataset)}></input>
                         </div>
 
                         <div className='form-row'>
                             <label htmlFor='borderWidth'>Border width: </label>
                             <input type='number' name='borderWidth' defaultValue={thisDataset?.borderWidth}
-                                onChange={(e) => modifySetting('borderWidth', e.target.value, e.target.type)}></input>
+                                onChange={(e) => modifySetting('borderWidth', e.target.value, thisDataset, setThisDataset, e.target.type)}></input>
                         </div>
 
                         <div className='form-row'>
                             <label htmlFor='borderRadius'>Border radius: </label>
                             <input type='number' name='borderRadius' defaultValue={thisDataset?.borderRadius}
-                                onChange={(e) => modifySetting('borderRadius', e.target.value, e.target.type)}></input>
+                                onChange={(e) => modifySetting('borderRadius', e.target.value, thisDataset, setThisDataset, e.target.type)}></input>
                         </div>
 
                         <div className='form-row'>
                             <label htmlFor='borderSkipped'>Border skipped: </label>
-                            <select name='borderSkipped' onChange={(e) => modifySetting('borderSkipped', e.target.value)}>
+                            <select name='borderSkipped' onChange={(e) => modifySetting('borderSkipped', e.target.value, thisDataset, setThisDataset)}>
                                 <option value='start'>start</option>
                                 <option value='end'>end</option>
                                 <option value='middle'>middle</option>
@@ -229,7 +220,7 @@ export default function BarDataset({ dataset, onDatasetChange, onTypeChange, ind
 
                         <div className='form-row'>
                             <label htmlFor='pointStyle'>Point style: </label>
-                            <select name='pointStyle' onChange={(e) => modifySetting('pointStyle', e.target.value)}>
+                            <select name='pointStyle' onChange={(e) => modifySetting('pointStyle', e.target.value, thisDataset, setThisDataset)}>
                                 <option value='false'>false</option>
                                 <option value='circle'>circle</option>
                                 <option value='cross'>cross</option>

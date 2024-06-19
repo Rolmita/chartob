@@ -437,7 +437,7 @@ export default function ScalesForm({ axisId, axis, datasetType, onOptionsChange,
                                 <label htmlFor='true'>True</label>
                                 <input type='radio' name='grid-display' value='false'
                                     defaultChecked={axisIdScale?.grid.display ? false : true}
-                                    onChange={(e) => modifyScale('grid-display', e.target.value)}></input>
+                                    onChange={(e) => modifyScale('grid-display', e.target.value, axisIdScale, setAxisIdScale)}></input>
                                 <label htmlFor='false'>False</label>
                             </div>
 

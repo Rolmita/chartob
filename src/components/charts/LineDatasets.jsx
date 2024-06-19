@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import 'chartjs-adapter-luxon'
 import ColorSelect from './ColorSelect'
+import { hexToRgba, rgbaToHex, toggleDropdown, modifySetting } from '@/utils/helpers'
 
+//TODO:MOVER XAXISIDS E YAXISIDS
 export default function LineDataset({ dataset, onDatasetChange, onTypeChange, index }) {
     const xAxisIDs = ['first-x-axis', 'second-x-axis', 'third-x-axis', 'fourth-x-axis', 'fifth-x-axis']
     const yAxisIDs = ['first-y-axis', 'second-y-axis', 'third-y-axis', 'fourth-y-axis', 'fifth-y-axis']
@@ -13,34 +15,10 @@ export default function LineDataset({ dataset, onDatasetChange, onTypeChange, in
     const [borderDashLineSpacing, setBorderDashLineSpacing] = useState(borderDash[1])
     const [thisDataset, setThisDataset] = useState(dataset)
 
-    console.log(dataset);
-    console.log('este es el index de lineDataset', index);
-
-    const toggleDropdown = (divId, imgId) => {
-        const element = document.getElementById(divId);
-        element.style.display === 'none' ? element.style.display = 'block' : element.style.display = 'none'
-        const img = document.getElementById(imgId)
-        img.style.transform == 'rotate(180deg)'
-            ? img.style.transform = 'rotate(0deg)'
-            : img.style.transform = 'rotate(180deg)'
-
-    };
-
     const handleCheckboxChange = (name, value) => {
-        const lineSettings = document.getElementById('lineSettings')
-        console.log(value);
-        if (value == true && name == 'showLine') {
-            setShowLine(true)
-            modifySetting('showLine', value)
-            lineSettings.style.display = 'flex'
-            lineSettings.style.flexDirection = 'column'
-        } else if (name == 'showLine') {
-            setShowLine(false)
-            modifySetting('showLine', false)
-            lineSettings.style.display = 'none'
-        }
+        //TODO: MANEJAR EN EL PROPIO FORM SI ES POSIBLE
         if (value == true && name == 'borderDash') {
-            setEnableBorderDash(true)
+            setEnableBorderDash(true, thisDataset, setThisDataset)
             borderDashSettings.style.display = 'flex'
             borderDashSettings.style.flexDirection = 'column'
         } else if (name == 'borderDash') {
@@ -52,55 +30,22 @@ export default function LineDataset({ dataset, onDatasetChange, onTypeChange, in
     }
 
     useEffect(() => {
-        modifySetting('borderDash', [borderDashLineLength, borderDashLineSpacing])
+        modifySetting('borderDash', [borderDashLineLength, borderDashLineSpacing], thisDataset, setThisDataset)
     }, [borderDashLineLength, borderDashLineSpacing])
 
-    const modifySetting = (key, value, type) => {
-        if (key == 'type' && value == 'undefined') value.trim().replace(/'/g, '');
-        if (key == 'type') onTypeChange(value)
-        let updatedDataset
-        if (key == 'backgroundColor') {
-            const colorToModify = value
-            value = hexToRgba(colorToModify)
-        }
-        if (key == 'pointStyle' && value == 'false') value = false
-        if (type == 'number') {
-            const numValue = Number(value)
-            updatedDataset = { ...thisDataset, [key]: numValue }
-        } else {
-            updatedDataset = { ...thisDataset, [key]: value }
-        }
-        setThisDataset(updatedDataset)
-        onDatasetChange(updatedDataset)
-    }
-
-    const onTypeChangeInner = (chartType, index) => {
-        modifySetting('type', chartType)
-        onTypeChange(chartType, index)
-    };
-
-    const handleRadioChange = (e) => {
-        modifySetting('indexAxis', e.target.value)
-    }
-
-    const hexToRgba = (hex) => {
-        hex = hex.replace(/^#/, '')
-
-        if (hex.length !== 6) throw new Error('Invalid hexadecimal color')
-
-        const r = parseInt(hex.slice(0, 2), 16)
-        const g = parseInt(hex.slice(2, 4), 16)
-        const b = parseInt(hex.slice(4, 6), 16)
-
-        return `rgba(${r}, ${g}, ${b}, 0.1)`
-    }
+    useEffect(() => {
+        onDatasetChange(thisDataset)
+    }, [thisDataset])
 
     return (
         <div>
             <div className='form-row'>
                 <label htmlFor="type">
                     Dataset type:</label>
-                <select name='type' onChange={(e) => onTypeChangeInner(e.target.value, index)}>
+                <select name='type' onChange={(e) => {
+                    modifySetting('type', e.target.value, thisDataset, setThisDataset)
+                    onTypeChange(e.target.value, index)
+                }}>
                     <option value='undefined'>--Select a dataset type--</option>
                     <option value='line'>Line</option>
                     <option value='pie'>Pie</option>
@@ -120,27 +65,27 @@ export default function LineDataset({ dataset, onDatasetChange, onTypeChange, in
                 <div id={`basicSettings-dropdown-line-${index}`} style={{ display: 'none', padding: '5px' }}>
                     <div className='form-row'>
                         <label htmlFor='label'>Dataset label: </label>
-                        <input type='text' name='label' defaultValue={thisDataset?.label} onChange={(e) => modifySetting('label', e.target.value)} />
+                        <input type='text' name='label' defaultValue={thisDataset?.label} onChange={(e) => modifySetting('label', e.target.value, thisDataset, setThisDataset)} />
                     </div>
 
                     <div className='form-row'>
                         <label htmlFor='indexAxis' title="The base axis of the dataset. 'x' for horizontal lines and 'y' for vertical lines.">Index Axis: </label>
-                        <input type='radio' name='indexAxis' value='x' defaultChecked onChange={handleRadioChange} />
+                        <input type='radio' name='indexAxis' value='x' defaultChecked onChange={(e) => modifySetting('indexAxis', e.target.value, thisDataset, setThisDataset)} />
                         <label htmlFor='x'>x</label>
-                        <input type='radio' name='indexAxis' value='y' onChange={handleRadioChange} />
+                        <input type='radio' name='indexAxis' value='y' onChange={(e) => modifySetting('indexAxis', e.target.value, thisDataset, setThisDataset)} />
                         <label htmlFor='x'>y</label>
                     </div>
 
                     <div className='form-row'>
                         <label htmlFor='xAxisID'>xAxisID: </label>
-                        <select name='xAxisID' onChange={(e) => modifySetting('xAxisID', e.target.value)}>
+                        <select name='xAxisID' onChange={(e) => modifySetting('xAxisID', e.target.value, thisDataset, setThisDataset)}>
                             {xAxisIDs.map((axis, index) => (<option key={`xAxis${index}`} value={axis}>{axis}</option>))}
                         </select>
                     </div>
 
                     <div className='form-row'>
                         <label htmlFor='yAxisID'>yAxisID: </label>
-                        <select name='yAxisID' onChange={(e) => modifySetting('yAxisID', e.target.value)}>
+                        <select name='yAxisID' onChange={(e) => modifySetting('yAxisID', e.target.value, thisDataset, setThisDataset)}>
                             {yAxisIDs.map((axis, index) => (<option key={`yAxis${index}`} value={axis}>{axis}</option>))}
                         </select>
                     </div>
@@ -148,7 +93,7 @@ export default function LineDataset({ dataset, onDatasetChange, onTypeChange, in
                     <div className='form-row'>
                         <label htmlFor='order'>Order: </label>
                         <input type='number' name='order' defaultValue={thisDataset?.order} step='1'
-                            onChange={(e) => modifySetting('order', e.target.value, e.target.type)}></input>
+                            onChange={(e) => modifySetting('order', e.target.value, thisDataset, setThisDataset, e.target.type)}></input>
                     </div>
                 </div>
             </div>
@@ -164,15 +109,20 @@ export default function LineDataset({ dataset, onDatasetChange, onTypeChange, in
                 <div id={`lineSettings-dropdown-line-${index}`} style={{ display: 'none', padding: '5px' }}>
                     <div className='form-row'>
                         <input type='checkbox' id='showLine' name='showLine' defaultChecked={showLine}
-                            onChange={(e) => handleCheckboxChange('showLine', e.target.checked)}></input>
+                            onChange={(e) => {
+                                const lineSettings = document.getElementById('lineSettings')
+                                modifySetting('showLine', e.target.checked, thisDataset, setThisDataset)
+                                e.target.checked ? lineSettings.style.display = 'flex' : lineSettings.style.display = 'none'
+                            }}>
+                        </input>
                         <label htmlFor='showLine'>Show line</label>
                     </div>
 
-                    <div id='lineSettings' style={{}}>
+                    <div id='lineSettings' style={{ flexDirection: 'column' }}>
                         <div className='form-row'>
                             <label htmlFor='borderCapStyle'>Border cap style: </label>
                             <select name='borderCapStyle' defaultValue={thisDataset?.borderCapStyle}
-                                onChange={(e) => modifySetting('borderCapStyle', e.target.value)}>
+                                onChange={(e) => modifySetting('borderCapStyle', e.target.value, thisDataset, setThisDataset)}>
                                 <option value='butt'>butt</option>
                                 <option value='round'>round</option>
                                 <option value='square'>square</option>
@@ -182,23 +132,41 @@ export default function LineDataset({ dataset, onDatasetChange, onTypeChange, in
                         <div className='form-row'>
                             <label htmlFor='borderColor'>Line color: </label>
                             <ColorSelect onChange={(e) => {
-                                modifySetting('borderColor', e.target.value)
+                                modifySetting('borderColor', e.target.value, thisDataset, setThisDataset)
                                 const picker = document.getElementById('borderColor-picker')
                                 picker.value = e.target.value
                             }} />
                             <input type='color' id='borderColor-picker' name='borderColor' defaultValue={thisDataset?.borderColor}
-                                onChange={(e) => modifySetting('borderColor', e.target.value)}></input>
+                                onChange={(e) => modifySetting('borderColor', e.target.value, thisDataset, setThisDataset)}></input>
+                        </div>
+
+                        <div className='form-row'>
+                            <label htmlFor='fill'>Fill: </label>
+                            <select name='fill' defaultValue={thisDataset?.fill}
+                                onChange={(e) => modifySetting('fill', e.target.value, thisDataset, setThisDataset)}>
+                                <option value='false'>disabled</option>
+                                <option value='-1'>previous dataset</option>
+                                <option value='shape'>shape (inside line)</option>
+                                <option value='stack'>stacked value below</option>
+                                <option value='start'>boundary start</option>
+                                <option value='end'>boundary end</option>
+                                <option value='origin'>boundary origin</option>
+                            </select>
                         </div>
 
                         <div className='form-row'>
                             <label htmlFor='backgroundColor'>Fill color: </label>
                             <ColorSelect onChange={(e) => {
-                                modifySetting('backgroundColor', e.target.value)
+                                const value = hexToRgba(e.target.value)
+                                modifySetting('backgroundColor', value, thisDataset, setThisDataset)
                                 const picker = document.getElementById('backgroundColor-picker')
-                                picker.value = e.target.value
+                                picker.value = rgbaToHex(e.target.value)
                             }} />
                             <input type='color' id='backgroundColor-picker' name='backgroundColor' defaultValue={thisDataset?.backgroundColor}
-                                onChange={(e) => modifySetting('backgroundColor', e.target.value)}></input>
+                                onChange={(e) => {
+                                    const value = hexToRgba(e.target.value)
+                                    modifySetting('backgroundColor', value, thisDataset, setThisDataset)
+                                }}></input>
                         </div>
 
                         <div className='form-row'>
@@ -224,13 +192,13 @@ export default function LineDataset({ dataset, onDatasetChange, onTypeChange, in
                         <div className='form-row'>
                             <label htmlFor='borderWidth'>Border width: </label>
                             <input type='number' name='borderWidth' defaultValue={thisDataset?.borderWidth}
-                                onChange={(e) => modifySetting('borderWidth', e.target.value, e.target.type)}></input>
+                                onChange={(e) => modifySetting('borderWidth', e.target.value, thisDataset, setThisDataset, e.target.type)}></input>
                         </div>
 
                         <div className='form-row'>
                             <label htmlFor='borderJoinStyle'>Border cap style: </label>
                             <select name='borderJoinStyle' defaultValue={thisDataset?.borderJoinStyle}
-                                onChange={(e) => modifySetting('borderJoinStyle', e.target.value)}>
+                                onChange={(e) => modifySetting('borderJoinStyle', e.target.value, thisDataset, setThisDataset)}>
                                 <option value='butt'>miter</option>
                                 <option value='round'>round</option>
                                 <option value='bevel'>bevel</option>
@@ -238,26 +206,12 @@ export default function LineDataset({ dataset, onDatasetChange, onTypeChange, in
                         </div>
 
                         <div className='form-row'>
-                            <label htmlFor='fill'>Fill: </label>
-                            <select name='fill' defaultValue={thisDataset?.fill}
-                                onChange={(e) => modifySetting('fill', e.target.value)}>
-                                <option value='false'>disabled</option>
-                                <option value='-1'>previous dataset</option>
-                                <option value='shape'>shape (inside line)</option>
-                                <option value='stack'>stacked value below</option>
-                                <option value='start'>boundary start</option>
-                                <option value='end'>boundary end</option>
-                                <option value='origin'>boundary origin</option>
-                            </select>
-                        </div>
-
-                        <div className='form-row'>
                             <label htmlFor='spanGaps'>Draw line between points with no or null data: </label>
                             <input type='radio' name='spanGaps' value='false'
-                                onSelect={(e) => modifySetting('spanGaps', e.target.value)}></input>
+                                onSelect={(e) => modifySetting('spanGaps', e.target.value, thisDataset, setThisDataset)}></input>
                             <label htmlFor='true'>yes</label>
                             <input type='radio' name='spanGaps' value='true'
-                                onSelect={(e) => modifySetting('spanGaps', e.target.value)}></input>
+                                onSelect={(e) => modifySetting('spanGaps', e.target.value, thisDataset, setThisDataset)}></input>
                             <label htmlFor='true'>no</label>
                         </div>
                     </div>
@@ -275,7 +229,7 @@ export default function LineDataset({ dataset, onDatasetChange, onTypeChange, in
                 <div id={`pointSettings-dropdown-line-${index}`} style={{ display: 'none', padding: '5px' }}>
                     <div className='form-row'>
                         <label htmlFor='pointStyle'>Point style: </label>
-                        <select name='pointStyle' onChange={(e) => modifySetting('pointStyle', e.target.value)}>
+                        <select name='pointStyle' onChange={(e) => modifySetting('pointStyle', e.target.value, thisDataset, setThisDataset)}>
                             <option value='false'>false</option>
                             <option value='circle'>circle</option>
                             <option value='cross'>cross</option>
@@ -294,42 +248,42 @@ export default function LineDataset({ dataset, onDatasetChange, onTypeChange, in
                         <div className='form-row'>
                             <label htmlFor='pointBackgroundColor'>Point background color: </label>
                             <ColorSelect onChange={(e) => {
-                                modifySetting('pointBackgroundColor', e.target.value)
+                                modifySetting('pointBackgroundColor', e.target.value, thisDataset, setThisDataset)
                                 const picker = document.getElementById('pointBackgroundColor-picker')
                                 picker.value = e.target.value
                             }} />
                             <input type='color' id='pointBackgroundColor-picker' name='pointBackgroundColor-picker' defaultValue={thisDataset?.pointBackgroundColor}
-                                onChange={(e) => modifySetting('pointBackgroundColor', e.target.value)}></input>
+                                onChange={(e) => modifySetting('pointBackgroundColor', e.target.value, thisDataset, setThisDataset)}></input>
                         </div>
                     </div>
 
                     <div className='form-row'>
                         <label htmlFor='pointBorderColor'>Border color: </label>
                         <ColorSelect onChange={(e) => {
-                            modifySetting('pointBorderColor', e.target.value)
+                            modifySetting('pointBorderColor', e.target.value, thisDataset, setThisDataset)
                             const picker = document.getElementById('pointBorderColor-picker')
                             picker.value = e.target.value
                         }} />
                         <input type='color' id='pointBorderColor-picker' name='pointBorderColor-picker' defaultValue={thisDataset?.pointBorderColor}
-                            onChange={(e) => modifySetting('pointBorderColor', e.target.value)}></input>
+                            onChange={(e) => modifySetting('pointBorderColor', e.target.value, thisDataset, setThisDataset)}></input>
                     </div>
 
                     <div className='form-row'>
                         <label htmlFor='pointBorderWidth'>Border width: </label>
                         <input type='number' name='pointBorderWidth' defaultValue={thisDataset?.pointBorderWidth}
-                            onChange={(e) => modifySetting('pointBorderWidth', e.target.value, e.target.type)}></input>
+                            onChange={(e) => modifySetting('pointBorderWidth', e.target.value, thisDataset, setThisDataset, e.target.type)}></input>
                     </div>
 
                     <div className='form-row'>
                         <label htmlFor='pointRadius'>Point radius: </label>
                         <input type='number' name='pointRadius' defaultValue={thisDataset?.pointRadius}
-                            onChange={(e) => modifySetting('pointRadius', e.target.value, e.target.type)}></input>
+                            onChange={(e) => modifySetting('pointRadius', e.target.value, thisDataset, setThisDataset, e.target.type)}></input>
                     </div>
 
                     <div className='form-row'>
                         <label htmlFor='pointHoverRadius'>Point hover radius: </label>
                         <input type='number' name='pointHoverRadius' defaultValue={thisDataset?.pointHoverRadius}
-                            onChange={(e) => modifySetting('pointHoverRadius', e.target.value, e.target.type)}></input>
+                            onChange={(e) => modifySetting('pointHoverRadius', e.target.value, thisDataset, setThisDataset, e.target.type)}></input>
                     </div>
 
                 </div>

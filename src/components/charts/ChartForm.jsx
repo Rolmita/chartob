@@ -43,7 +43,7 @@ export default function ChartForm({ data, status, onFinalData, onFinalOptions, o
                         datasetData.push(value)
 
                     } else {
-                        if (value instanceof Date || typeof value == 'String') {
+                        if (value instanceof Date || typeof value == 'string') {
                             labels.push(value)
 
                         } else {

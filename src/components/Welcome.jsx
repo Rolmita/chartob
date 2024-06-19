@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { getUserBySession } from "@/lib/actions"
+import Link from "next/link"
 
 export default async function Welcome() {
 
@@ -20,11 +21,22 @@ export default async function Welcome() {
         console.log(error);
     }
 
+    const formattedDateTime = (datetime) => {
+        const date = new Date(datetime);
+        const day = ('0' + date.getDate()).slice(-2)
+        const month = ('0' + (date.getMonth() + 1)).slice(-2)
+        const year = date.getFullYear()
+        const hour = ('0' + date.getHours()).slice(-2)
+        const min = ('0' + date.getHours()).slice(-2)
+        const lastUpdate = `${day}-${month}-${year} ${hour}:${min}`
+        return lastUpdate
+    }
+
 
     return (
         <div className="show-databases">
             <h1>Hi, {userWithDashboard?.name}</h1>
-            {userWithDashboard && userWithDashboard.dashboard
+            {userWithDashboard && userWithDashboard.dashboards
                 ? <div>
                     <h2>Here you have a list with your last modified dashboard:</h2>
                     <div style={{ marginTop: '10px' }}>
