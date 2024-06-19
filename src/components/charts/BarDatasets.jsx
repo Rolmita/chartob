@@ -26,7 +26,7 @@ export default function BarDataset({ dataset, onDatasetChange, onTypeChange, ind
                     Type of dataset:</label>
                 <select name='type' onChange={(e) => {
                     modifySetting('type', e.target.value, thisDataset, setThisDataset)
-                    onTypeChange(chartType, index)
+                    // onTypeChange(chartType, index)
                 }} defaultValue={thisDataset?.type}>
                     <option value='undefined'>--Select a dataset type--</option>
                     <option value='line'>Line</option>

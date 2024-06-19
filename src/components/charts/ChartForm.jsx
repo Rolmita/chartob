@@ -8,6 +8,8 @@ import 'chartjs-adapter-luxon'
 import { updateChartOpt, updateChartScaleOpt, dateLabel, modifyDataset } from '@/utils/helpers'
 import { lineChartData, pieChartData, barChartData, basicChartOptions, basicChartOptionsR } from '@/utils/chart-settings'
 
+
+//TODO: DENTRO DE CADA DATASET, LA SELECCION DE TIPO NO DEBE CAMBIAR EL TIPO DE GRAFICO (CHARTTYPE)
 export default function ChartForm({ data, status, onFinalData, onFinalOptions, onChartType }) {
     const [options, setOptions] = useState({})
     const [chartDataset, setChartDataset] = useState({})

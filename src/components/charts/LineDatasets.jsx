@@ -44,7 +44,7 @@ export default function LineDataset({ dataset, onDatasetChange, onTypeChange, in
                     Dataset type:</label>
                 <select name='type' onChange={(e) => {
                     modifySetting('type', e.target.value, thisDataset, setThisDataset)
-                    onTypeChange(e.target.value, index)
+                    // onTypeChange(e.target.value, index)
                 }}>
                     <option value='undefined'>--Select a dataset type--</option>
                     <option value='line'>Line</option>

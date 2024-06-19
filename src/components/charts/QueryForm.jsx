@@ -119,9 +119,9 @@ function QueryForm({ databases, onQueryResults, onQuery, onDb, prevQuery, prevDb
                 <div className="form-row" style={{ display: 'flex', flexDirection: 'row', width: '100%' }}>
                     <label>Database name: </label>
                     <select name='database' onChange={handleDbChange} defaultValue={prevDb && prevDb}>
-                        {prevDb 
-                        ? <option value={prevDb}>{prevDb}</option> 
-                        : <option value={null}>-- Choose a database --</option>}
+                        {prevDb
+                            ? <option value={prevDb}>{prevDb}</option>
+                            : <option value={null}>-- Choose a database --</option>}
                         {databases
                             ? (Object.keys(databases).map(dbName => (
                                 <option key={dbName} value={dbName}>
@@ -195,18 +195,117 @@ function QueryForm({ databases, onQueryResults, onQuery, onDb, prevQuery, prevDb
                                     <input type='checkbox' name={`modifiers-${index}`} value='MIN'></input>
                                     <label htmlFor={`modifiers-${index}`}>Min</label>
                                 </div>
+                                <div className='modifiers-type'>
+                                    <input type='checkbox' id={`cumulative-modifier-${index}`} name={`modifiers-${index}`} value='CUMULATIVE'
+                                        onChange={(e) => {
+                                            const cumulativeDiv = document.getElementById(`cumulative-total-${index}`)
+                                            e.target.checked ? cumulativeDiv.style.display = 'flex' : cumulativeDiv.style.display = 'none'
+                                        }}>
+                                    </input>
+                                    <label htmlFor={`modifiers-${index}`}>Cumulative sum</label>
+                                </div>
+                                <div className='modifiers-type'>
+                                    <input type='checkbox' id={`variation-modifier-${index}`} name={`modifiers-${index}`} value='variation'
+                                        onChange={(e) => {
+                                            const variationDiv = document.getElementById(`variation-${index}`)
+                                            e.target.checked ? variationDiv.style.display = 'flex' : variationDiv.style.display = 'none'
+                                        }}>
+                                    </input>
+                                    <label htmlFor={`modifiers-${index}`}>Variation</label>
+                                </div>
+                            </div>
+                            <div id={`variation-${index}`} style={{ display: 'none' }} className='form-row'>
+                                <div className='form-row'>
+                                    <h4>Variation</h4>
+                                </div>
+                                <div className='form-row columns'>
+                                    <div>
+                                        <label htmlFor='partition'>Partition: </label>
+                                        <select name={`variation-partition-${index}`}
+                                            onChange={(e) => console.log('selected partition: ', e.target.value)}>
+                                            <option value='null'>-- Partition column --</option>
+                                            {columns != null && Object.keys(columns).map(index => (
+                                                <option key={`partition-${columns[index].COLUMN_NAME}`} value={columns[index].COLUMN_NAME}>
+                                                    {columns[index].COLUMN_NAME}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div >
+                                        <label htmlFor='order'>Order: </label>
+                                        <select name={`variation-order-${index}`}
+                                            onChange={(e) => console.log('selected order column: ', e.target.value)}>
+                                            <option value='null'>-- Order column --</option>
+                                            {columns != null && Object.keys(columns).map(index => (
+                                                <option key={`order-${columns[index].COLUMN_NAME}`} value={columns[index].COLUMN_NAME}>
+                                                    {columns[index].COLUMN_NAME}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <label htmlFor='variation'>Variation order:</label>
+                                        <select name={`variation-order-${index}-class`}>
+                                            <option value='ASC'>-- Order classification --</option>
+                                            <option value='ASC'> ASCENDENT</option>
+                                            <option value='DESC'>DESCENDENT</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id={`cumulative-total-${index}`} style={{ display: 'none' }} className='form-row'>
+                                <div className='form-row'>
+                                    <h4>Cumulative total</h4>
+                                </div>
+                                <div className='form-row columns'>
+                                    <div >
+                                        <label htmlFor='partition'>Partition: </label>
+                                        <select name={`cumulative-partition-${index}`}
+                                            onChange={(e) => console.log('selected partition: ', e.target.value)}>
+                                            <option value='null'>-- Partition column --</option>
+                                            {columns != null && Object.keys(columns).map(index => (
+                                                <option key={`partition-${columns[index].COLUMN_NAME}`} value={columns[index].COLUMN_NAME}>
+                                                    {columns[index].COLUMN_NAME}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div >
+                                        <label htmlFor='order'>Order: </label>
+                                        <select name={`cumulative-order-${index}`}
+                                            onChange={(e) => console.log('selected order column: ', e.target.value)}
+                                            required={() => {
+                                                const check = document.getElementById(`cumulative-modifier-${index}`)
+                                                if (check.checked) {
+                                                    return true
+                                                } else {
+                                                    return false
+                                                }
+                                            }}>
+                                            <option value='null'>-- Order column --</option>
+                                            {columns != null && Object.keys(columns).map(index => (
+                                                <option key={`order-${columns[index].COLUMN_NAME}`} value={columns[index].COLUMN_NAME}>
+                                                    {columns[index].COLUMN_NAME}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <select name={`cumulative-order-${index}-class`}>
+                                            <option value='ASC'>-- Order classification --</option>
+                                            <option value='ASC'> ASCENDENT</option>
+                                            <option value='DESC'>DESCENDENT</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     ))}
 
                     <div className='form-row'>
-                        <input name='all-columns' type='checkbox' value='*' style={{margin:'0 5px'}}></input>
+                        <input name='all-columns' type='checkbox' value='*' style={{ margin: '0 5px' }}></input>
                         <label>All columns</label>
                     </div>
                 </div>
                 <QueryFilterForm columns={columns} db={db} table={table} onFilter={setFilterResult} />
                 <div className='form-row'>
-                    <textarea name='query-area' id='query-area' defaultValue={query} style={{marginBottom:'10px'}}></textarea>
+                    <textarea name='query-area' id='query-area' defaultValue={query} style={{ marginBottom: '10px' }}></textarea>
                 </div>
                 <button type='submit' className='button' onClick={handleButtonChange}>{buttonName}</button>
             </form>

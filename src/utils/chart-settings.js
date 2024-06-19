@@ -14,7 +14,7 @@ export const lineChartData = {
         //stack: 'line', //boolean
         backgroundColor: 'rgba(0, 0, 0, 0.1)',
         borderCapStyle: 'butt', //round, square
-        borderColor: 'rgba(0, 0, 0, 0.1)',
+        borderColor: 'rgba(0, 0, 0)',
         borderDash: [0, 0], //array [longitud de linea, espaciado] en px
         //borderDashOffset: 0.0,
         borderJoinStyle: 'miter', // 'round'|'bevel'|'miter'

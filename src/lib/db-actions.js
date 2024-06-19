@@ -85,7 +85,7 @@ function updateDbConfig(foundUser, dBPrevName, dbConfig) {
     if (!foundUser.databases) return;
 
     const dbToUpdate = foundUser.databases[dBPrevName]
-    
+
     if (dbToUpdate) {
         dbToUpdate.host = dbConfig.host
         dbToUpdate.user = dbConfig.user
@@ -225,13 +225,26 @@ export async function createQuery(formData, filterResult) {
                 columns.forEach((column, index) => {
 
                     if (modifiers[`modifiers-${index}`]) {
-
                         modifiers[`modifiers-${index}`].forEach((modifier, i) => {
-                            (index == 0 && i == 0) ? cols += `${modifier}(${column})` : cols += `, ${modifier}(${column})`
+                            modifier == 'CUMULATIVE' ? console.log(modifier) : console.log('NO ES CUMULATIVE');
+
+                            if (index == 0 && i == 0) {
+                                (modifier == 'CUMULATIVE' || modifier == 'variation')
+                                    ? modifier == 'CUMULATIVE'
+                                        ? cols += cumulativeModifier(column, index, formData)
+                                        : cols += variation(column, index, formData)
+                                    : cols += `${modifier}(${column})`
+
+                            } else {
+                                (modifier == 'CUMULATIVE' || modifier == 'variation')
+                                    ? modifier == 'CUMULATIVE'
+                                        ? cols += `, ${cumulativeModifier(column, index, formData)}`
+                                        : cols += `, ${variation(column, index, formData)}`
+                                    : cols += `, ${modifier}(${column})`
+                            }
                         })
 
                     } else {
-
                         if (columns[index] != 'null') index == 0 ? cols += `${column}` : cols += `, ${column}`
                     }
 
@@ -253,6 +266,33 @@ export async function createQuery(formData, filterResult) {
     } catch (err) {
         console.log(err);
     }
+}
+
+function variation(column, index, formData) {
+    const partition = formData.get(`variation-partition-${index}`)
+    const order = formData.get(`variation-order-${index}`)
+    const classification = formData.get(`variation-order-${index}-class`)
+    let col
+    // SELECT fecha, cantidad, cantidad - LAG(cantidad) OVER (ORDER BY fecha) AS variación
+    if (partition != 'null') {
+        return col = `${column} - LAG(${column}) OVER (PARTITION BY ${partition} ORDER BY ${order} ${classification}) AS variation_${column}`
+    } else {
+        return col = `${column} - LAG(${column}) OVER (ORDER BY ${order} ${classification}) AS variation_${column}`
+    }
+}
+
+function cumulativeModifier(column, index, formData) {
+    const partition = formData.get(`cumulative-partition-${index}`)
+    const order = formData.get(`cumulative-order-${index}`)
+    const classification = formData.get(`cumulative-order-${index}-class`)
+    let col
+
+    if (partition != 'null') {
+        return col = `SUM(${column}) OVER (PARTITION BY ${partition} ORDER BY ${order} ${classification}) AS total_${column}`
+    } else {
+        return col = `SUM(${column}) OVER (ORDER BY ${order} ${classification}) AS total_${column}`
+    }
+
 }
 
 export async function executeQuery(databases, formData) {
